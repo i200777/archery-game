@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Generated Movement</title>
+
+  <style>
+    :root {
+      --box-size: 42px;
+      --primary: #4f46e5;
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f7fb;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 16px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .stage {
+      width: 520px;
+      height: 280px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .agent {
+      width: var(--box-size);
+      height: var(--box-size);
+      background: linear-gradient(135deg, var(--primary), #22d3ee);
+      border-radius: 10px;
+      position: absolute;
+      will-change: transform;
+    }
+  </style>
+</head>
+<body>
+
+<button id="startBtn">Start</button>
+
+<div class="stage">
+  <div class="agent"></div>
+</div>
+
+<script>
+  class Agent {
+    constructor(element, container) {
+      this.el = element;
+      this.container = container;
+
+      this.pos = { x: 80, y: 80 };
+      this.vel = {
+        x: Math.random() > 0.5 ? 1 : -1,
+        y: Math.random() > 0.5 ? 1 : -1
+      };
+
+      this.bounds = {
+        x: container.clientWidth - element.clientWidth,
+        y: container.clientHeight - element.clientHeight
+      };
+
+      this.running = false;
+      this.loop = this.loop.bind(this);
+    }
+
+    start() {
+      if (this.running) return;
+      this.running = true;
+      requestAnimationFrame(this.loop);
+    }
+
+    loop() {
+      if (!this.running) return;
+
+      this.pos.x += this.vel.x;
+      this.pos.y += this.vel.y;
+
+      if (this.pos.x <= 0 || this.pos.x >= this.bounds.x) this.vel.x *= -1;
+      if (this.pos.y <= 0 || this.pos.y >= this.bounds.y) this.vel.y *= -1;
+
+      this.el.style.transform =
+        `translate(${this.pos.x}px, ${this.pos.y}px)`;
+
+      requestAnimationFrame(this.loop);
+    }
+  }
+
+  const agent = new Agent(
+    document.querySelector(".agent"),
+    document.querySelector(".stage")
+  );
+
+  document.getElementById("startBtn").addEventListener("click", () => {
+    agent.start();
+  });
+</script>
+
+</body>
+</html>

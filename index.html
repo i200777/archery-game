@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Archery Game</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+        }
+
+        #info {
+            font-size: 18px;
+            margin: 10px;
+        }
+
+        #gameArea {
+            width: 500px;
+            height: 300px;
+            border: 2px solid black;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #target {
+            width: 50px;
+            height: 50px;
+            background: red;
+            border-radius: 50%;
+            position: absolute;
+            left: 200px;
+            top: 120px;
+        }
+
+        #arrow {
+            width: 40px;
+            height: 5px;
+            background: black;
+            position: absolute;
+            left: 0;
+            display: none;
+        }
+
+        #message {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>🎯 Archery Game</h2>
+
+<div id="info">
+    Score: <span id="score">0</span> |
+    Time: <span id="time">30</span>s
+</div>
+
+<button id="startBtn">Start Game</button>
+
+<div id="gameArea">
+    <div id="target"></div>
+    <div id="arrow"></div>
+</div>
+
+<p id="message"></p>
+
+<script>
+    // DOM Elements
+    const target = document.getElementById("target");
+    const arrow = document.getElementById("arrow");
+    const scoreText = document.getElementById("score");
+    const timeText = document.getElementById("time");
+    const startBtn = document.getElementById("startBtn");
+    const message = document.getElementById("message");
+
+    // Game State
+    let score = 0;
+    let timeLeft = 30;
+    let gameOver = false;
+
+    let speed = 2;
+    let dx = 2;
+    let dy = 2;
+
+    let arrowPositions = [80, 140, 200]; // multiple arrow positions
+    let arrowIndex = 0;
+
+    let timerInterval;
+    let targetInterval;
+
+    startBtn.addEventListener("click", startGame);
+    document.addEventListener("click", shootArrow);
+
+    // Start Game
+    function startGame() {
+        score = 0;
+        timeLeft = 30;
+        gameOver = false;
+        speed = 2;
+        dx = speed;
+        dy = speed;
+
+        scoreText.textContent = score;
+        timeText.textContent = timeLeft;
+        message.textContent = "";
+
+        arrow.style.display = "none";
+
+        startTimer();
+        moveTarget();
+    }
+
+    // Timer
+    function startTimer() {
+        clearInterval(timerInterval);
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            timeText.textContent = timeLeft;
+
+            if (timeLeft === 0) {
+                endGame();
+            }
+        }, 1000);
+    }
+
+    // Target moves in 4 directions
+    function moveTarget() {
+        clearInterval(targetInterval);
+
+        targetInterval = setInterval(() => {
+            let x = target.offsetLeft;
+            let y = target.offsetTop;
+
+            if (x <= 0 || x >= 450) dx = -dx;
+            if (y <= 0 || y >= 250) dy = -dy;
+
+            target.style.left = x + dx + "px";
+            target.style.top = y + dy + "px";
+        }, 20);
+    }
+
+    // Shoot Arrow from multiple positions
+    function shootArrow() {
+        if (gameOver) return;
+
+        arrow.style.display = "block";
+        arrow.style.left = "0px";
+        arrow.style.top = arrowPositions[arrowIndex] + "px";
+
+        arrowIndex = (arrowIndex + 1) % arrowPositions.length;
+
+        let arrowMove = setInterval(() => {
+            let arrowLeft = arrow.offsetLeft;
+            arrow.style.left = arrowLeft + 10 + "px";
+
+            if (checkHit()) {
+                clearInterval(arrowMove);
+                arrow.style.display = "none";
+                updateScore();
+            }
+
+            if (arrowLeft > 500) {
+                clearInterval(arrowMove);
+                arrow.style.display = "none";
+            }
+        }, 20);
+    }
+
+    // Collision Detection
+    function checkHit() {
+        let a = arrow.getBoundingClientRect();
+        let t = target.getBoundingClientRect();
+
+        return !(
+            a.right < t.left ||
+            a.left > t.right ||
+            a.bottom < t.top ||
+            a.top > t.bottom
+        );
+    }
+
+    // Score Update
+    function updateScore() {
+        score++;
+        scoreText.textContent = score;
+        increaseDifficulty();
+    }
+
+    // Difficulty Increase
+    function increaseDifficulty() {
+        if (score % 3 === 0) {
+            speed++;
+            dx = dx > 0 ? speed : -speed;
+            dy = dy > 0 ? speed : -speed;
+        }
+    }
+
+    // End Game
+    function endGame() {
+        gameOver = true;
+        clearInterval(timerInterval);
+        clearInterval(targetInterval);
+        message.textContent = "Game Over!";
+    }
+</script>
+
+</body>
+</html>
